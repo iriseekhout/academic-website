@@ -70,8 +70,10 @@ email: ""
 
 # Highlight the author in author lists? (true/false)
 highlight_name: false
+
+ #add this below bio to add donwlodable pdf for cv{{< icon name="download" pack="fas" >}} Download my {{< staticref "media/ demo_resume.pdf" "newtab" >}}resumé{{< /staticref >}}.
 ---
 
 Iris Eekhout holds a double master in clinical psychology and methodology and statistics of psychology (Leiden University). She obtained her PhD at the Department of Epidemiology and Biostatistics of the VU University medical centre in Amsterdam. Her dissertation work resulted in novel ways of dealing with missing data in questionnaire items and total scores. Currently, Iris teaches a course on missing data analysis in the epidemiology master’s program at VU University medical centre. At TNO, Iris works on a variety of projects as a methodologist and statistical analyst related to child health, e.g., measuring child development (D-score) and adaptive screenings for psycho-social problems (psycat).
 
-{{< icon name="download" pack="fas" >}} Download my {{< staticref "media/demo_resume.pdf" "newtab" >}}resumé{{< /staticref >}}.
+
