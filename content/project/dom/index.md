@@ -13,10 +13,10 @@ image:
   focal_point: Smart
 
 links:
-- icon: asterisk
-  icon_pack: fab
-  name: website
-  url: https://www.missingdata.nl
+#- icon: asterisk
+#  icon_pack: fab
+#  name: website
+url: https://www.missingdata.nl
 url_code: ""
 url_pdf: ""
 url_slides: ""
