@@ -10,6 +10,6 @@ date: ""
 external_link: https://d-score.org/
 
 image:
-  caption: Photo by Toa Heftiba on Unsplash
+  caption: Photo by Iris Eekhout
   focal_point: Smart
 ---

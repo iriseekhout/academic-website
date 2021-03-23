@@ -1,6 +1,6 @@
 ---
-title: Don't Miss Out
-summary: PhD thesis about dealing with missing item scores in multi-item questionnaires.
+title: Don't Miss Out!
+summary: Missing data occurs in many empirical studies. It is vital for study results to handle the missing data correctly. The best solution to deal with missing data depends on the reasons for the occurrence of missing data and on the analysis that is planned. In the project a guide was developed to find the best way to deal with missing data in multi-item questionnaires. The website www.missingdata.nl also provides a lot of information about missing data and methodology. 
 tags:
 - missing data
 date: ""
@@ -29,7 +29,7 @@ url_video: ""
 #   Otherwise, set `slides = ""`.
 slides: ""
 ---
-Summary
+Incomplete data can contain valuable information
 
 In epidemiological research, patient reported outcomes are often measured by a multi-item questionnaire. In a multi-item questionnaire a construct is measured by combining the scores on several items (i.e., questions). Often these questionnaires contain missing data because one or several items are not filled out by the respondent, or the entire questionnaire was not filled out. Missing item scores might require different missing data methods than missing total scores. 
 
