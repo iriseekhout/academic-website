@@ -26,7 +26,7 @@ content:
     tag: ''
     category: ''
     publication_type: ''
-    author: ''
+    author: 'I. Eekhout'
     exclude_featured: true
 design:
   # Choose a view for the listings:
