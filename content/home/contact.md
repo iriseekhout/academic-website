@@ -2,7 +2,7 @@
 # An instance of the Contact widget.
 # Documentation: https://sourcethemes.com/academic/docs/page-builder/
 widget: contact
-active: false
+active: true
 # This file represents a page section.
 headless: true
 
@@ -26,3 +26,24 @@ content:
 design:
   columns: '2'
 ---
+
+<form name="contact" method="POST" data-netlify="true">
+  <p>
+    <label>Your Name: <br>
+    <input type="text" name="name" /></label>   
+  </p>
+  <p>
+    <label>Your Email: <br>
+    <input type="email" name="email" /></label>
+  </p>
+  <p>
+    <label>Message: <br>
+    <textarea name="message" rows="8"></textarea></label>
+  </p>
+  <p>
+    <button type="submit">Send</button>
+  </p>
+</form>
+
+
+
