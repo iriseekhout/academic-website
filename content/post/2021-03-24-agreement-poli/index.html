@@ -1,0 +1,1015 @@
+---
+title: Agreement for polytomous outcomes
+author: 'Iris Eekhout'
+date: '2021-03-24'
+slug: []
+categories: []
+tags:
+  - Agreement
+  - raters
+subtitle: ''
+summary: ''
+authors: []
+lastmod: '2021-03-24T14:33:58+01:00'
+featured: no
+image:
+  caption: ''
+  focal_point: ''
+  preview_only: no
+projects: ["agreement"]
+output: 
+  blogdown::html_page:
+    toc: true
+    fig_width: 6
+    dev: "svg"
+bibliography: [references.bib]
+biblio-style: apalike
+---
+
+<script src="{{< blogdown/postref >}}index_files/header-attrs/header-attrs.js"></script>
+
+<div id="TOC">
+<ul>
+<li><a href="#ordinal-data-example">Ordinal data example</a>
+<ul>
+<li><a href="#agreement-table">Agreement table</a></li>
+<li><a href="#agreement">Agreement</a></li>
+<li><a href="#specific-agreement">Specific agreement</a></li>
+<li><a href="#conditional-probability">Conditional probability</a></li>
+<li><a href="#weighted-agreement">Weighted agreement</a></li>
+</ul></li>
+<li><a href="#nominal-data-example">nominal data example</a>
+<ul>
+<li><a href="#agreement-table-1">Agreement table</a></li>
+<li><a href="#agreement-1">Agreement</a></li>
+<li><a href="#specific-agreement-1">Specific agreement</a></li>
+<li><a href="#conditional-agreement">Conditional agreement</a></li>
+</ul></li>
+<li><a href="#references">References</a></li>
+</ul>
+</div>
+
+<p>This document describes the use of the Agree package for two data examples that are used in the paper on specific agreement on polytomous outcomes in the situation of more than two raters <span class="citation">(<a href="#ref-devet2018" role="doc-biblioref">de Vet, Mullender, and Eekhout 2018</a>)</span>. The first data example is an example of ordinal ratings and the second example of nominal rating.</p>
+<pre class="r"><code>library(Agree)</code></pre>
+<div id="ordinal-data-example" class="section level2">
+<h2>Ordinal data example</h2>
+<p>For the ordinal data example we use data from a study by <span class="citation"><a href="#ref-dikmans2017" role="doc-biblioref">Dikmans et al.</a> (<a href="#ref-dikmans2017" role="doc-biblioref">2017</a>)</span>. This data is based on photographs of breasts of 50 women after breast reconstruction. The photographs are independently scored by 5 surgeons, the patients, and three mothers. They each rated the quality of the reconstruction on a 5 point ordinal scale with the verbal anchors on the left side ‘very dissatisfied’ on the left end and on the right end ‘very satisfied’ on the right end. They specifically rated the volume, shape, symmetry, scars and nipple. In this paper we use the data of 4 surgeons because one surgeon had some missing values and we look at the rates for symmetry. Data set 1 is used for the example of ordinal categories.</p>
+<pre class="r"><code>data(breast)
+
+variable &lt;- &quot;symmetry&quot;
+raters &lt;- c(&quot;PCH1&quot;, &quot;PCH2&quot;, &quot;PCH3&quot;, &quot;PCH4&quot;)
+ratersvars &lt;- paste(raters, variable, sep=&quot;_&quot;)
+data1 &lt;- data.frame(breast[ratersvars])
+
+data1 %&gt;% head()</code></pre>
+<pre><code>##       PCH1_symmetry  PCH2_symmetry PCH3_symmetry PCH4_symmetry
+## 1         satisfied very satisfied     satisfied     satisfied
+## 2           neutral        neutral  dissatisfied       neutral
+## 3         satisfied        neutral       neutral       neutral
+## 4      dissatisfied        neutral  dissatisfied  dissatisfied
+## 5 very dissatisfied      satisfied  dissatisfied     satisfied
+## 6         satisfied        neutral     satisfied     satisfied</code></pre>
+<div id="agreement-table" class="section level3">
+<h3>Agreement table</h3>
+<p>First the agreement table are summed for all rater combinations into one agreement table. Then the off diagonal cells are averaged to obtain symmetry agreement tables.</p>
+<pre class="r"><code>sumtable(data1,offdiag = FALSE) %&gt;% kable()</code></pre>
+<table>
+<thead>
+<tr>
+<th style="text-align:left;">
+</th>
+<th style="text-align:right;">
+very dissatisfied
+</th>
+<th style="text-align:right;">
+dissatisfied
+</th>
+<th style="text-align:right;">
+neutral
+</th>
+<th style="text-align:right;">
+satisfied
+</th>
+<th style="text-align:right;">
+very satisfied
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+very dissatisfied
+</td>
+<td style="text-align:right;">
+6
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+2
+</td>
+<td style="text-align:right;">
+0
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+dissatisfied
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+19
+</td>
+<td style="text-align:right;">
+23
+</td>
+<td style="text-align:right;">
+8
+</td>
+<td style="text-align:right;">
+1
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+neutral
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+18
+</td>
+<td style="text-align:right;">
+39
+</td>
+<td style="text-align:right;">
+27
+</td>
+<td style="text-align:right;">
+4
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+satisfied
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+4
+</td>
+<td style="text-align:right;">
+28
+</td>
+<td style="text-align:right;">
+28
+</td>
+<td style="text-align:right;">
+16
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+very satisfied
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+2
+</td>
+<td style="text-align:right;">
+36
+</td>
+<td style="text-align:right;">
+38
+</td>
+</tr>
+</tbody>
+</table>
+<pre class="r"><code>sumtable(data1,offdiag = TRUE) %&gt;% kable()</code></pre>
+<table>
+<thead>
+<tr>
+<th style="text-align:left;">
+</th>
+<th style="text-align:right;">
+very dissatisfied
+</th>
+<th style="text-align:right;">
+dissatisfied
+</th>
+<th style="text-align:right;">
+neutral
+</th>
+<th style="text-align:right;">
+satisfied
+</th>
+<th style="text-align:right;">
+very satisfied
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+very dissatisfied
+</td>
+<td style="text-align:right;">
+6.0
+</td>
+<td style="text-align:right;">
+0.5
+</td>
+<td style="text-align:right;">
+0.0
+</td>
+<td style="text-align:right;">
+1.0
+</td>
+<td style="text-align:right;">
+0.0
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+dissatisfied
+</td>
+<td style="text-align:right;">
+0.5
+</td>
+<td style="text-align:right;">
+19.0
+</td>
+<td style="text-align:right;">
+20.5
+</td>
+<td style="text-align:right;">
+6.0
+</td>
+<td style="text-align:right;">
+0.5
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+neutral
+</td>
+<td style="text-align:right;">
+0.0
+</td>
+<td style="text-align:right;">
+20.5
+</td>
+<td style="text-align:right;">
+39.0
+</td>
+<td style="text-align:right;">
+27.5
+</td>
+<td style="text-align:right;">
+3.0
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+satisfied
+</td>
+<td style="text-align:right;">
+1.0
+</td>
+<td style="text-align:right;">
+6.0
+</td>
+<td style="text-align:right;">
+27.5
+</td>
+<td style="text-align:right;">
+28.0
+</td>
+<td style="text-align:right;">
+26.0
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+very satisfied
+</td>
+<td style="text-align:right;">
+0.0
+</td>
+<td style="text-align:right;">
+0.5
+</td>
+<td style="text-align:right;">
+3.0
+</td>
+<td style="text-align:right;">
+26.0
+</td>
+<td style="text-align:right;">
+38.0
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div id="agreement" class="section level3">
+<h3>Agreement</h3>
+<p>From the agreement table we can calculate the agreement. And we can calculate the confidence interval around this agreement.</p>
+<pre class="r"><code>agreement(data1)</code></pre>
+<pre><code>## [1] 0.4333333</code></pre>
+<pre class="r"><code>CIagreement(data1,m=4,n=nrow(data1))</code></pre>
+<pre><code>##     CIlow agreement    CIhigh 
+## 0.3286321 0.4333333 0.5434725</code></pre>
+</div>
+<div id="specific-agreement" class="section level3">
+<h3>Specific agreement</h3>
+<p>The specific agreement for polytomous data, can be defined in two ways: the agreement of for one category versus not that category (e.g. very satisfied versus all other categories) or the agreement for one category versus any other (e.g. very satistfied versus satisfied). Below the Confidence intervals for the specific agreements are bootstrapped.</p>
+<pre class="r"><code>specific.agreement(data1, cat1=&quot;satisfied&quot;)</code></pre>
+<pre><code>## [1] 0.3163842</code></pre>
+<pre class="r"><code>CIagreement(data1, cat1=&quot;satisfied&quot;)</code></pre>
+<pre><code>##   BCIlow.2.5%     agreement BCIhigh.97.5% 
+##     0.2183856     0.3163842     0.3980597</code></pre>
+<pre class="r"><code>specific.agreement(data1, cat1=&quot;satisfied&quot;, cat2=&quot;very satisfied&quot;)</code></pre>
+<pre><code>## [1] 0.5185185</code></pre>
+<pre class="r"><code>CIagreement(data1, cat1=&quot;satisfied&quot;, cat2=&quot;very satisfied&quot;)</code></pre>
+<pre><code>##   BCIlow.2.5%     agreement BCIhigh.97.5% 
+##     0.3888754     0.5185185     0.6371872</code></pre>
+<pre class="r"><code>specific.agreement(data1, cat1=&quot;satisfied&quot;, cat2=&quot;neutral&quot;)</code></pre>
+<pre><code>## [1] 0.5045045</code></pre>
+<pre class="r"><code>CIagreement(data1, cat1=&quot;satisfied&quot;, cat2=&quot;neutral&quot;)</code></pre>
+<pre><code>##   BCIlow.2.5%     agreement BCIhigh.97.5% 
+##     0.3655425     0.5045045     0.6285875</code></pre>
+</div>
+<div id="conditional-probability" class="section level3">
+<h3>Conditional probability</h3>
+<p>We can calulate the probability of any other outcome conditional on an specific outcome.</p>
+<pre class="r"><code>conditional.agreement(data1) %&gt;% kable()</code></pre>
+<table>
+<thead>
+<tr>
+<th style="text-align:left;">
+</th>
+<th style="text-align:right;">
+prevalence
+</th>
+<th style="text-align:right;">
+proportion
+</th>
+<th style="text-align:right;">
+very dissatisfied
+</th>
+<th style="text-align:right;">
+dissatisfied
+</th>
+<th style="text-align:right;">
+neutral
+</th>
+<th style="text-align:right;">
+satisfied
+</th>
+<th style="text-align:right;">
+very satisfied
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+very dissatisfied
+</td>
+<td style="text-align:right;">
+7.5
+</td>
+<td style="text-align:right;">
+0.025
+</td>
+<td style="text-align:right;">
+0.800
+</td>
+<td style="text-align:right;">
+0.067
+</td>
+<td style="text-align:right;">
+0.000
+</td>
+<td style="text-align:right;">
+0.133
+</td>
+<td style="text-align:right;">
+0.000
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+dissatisfied
+</td>
+<td style="text-align:right;">
+46.5
+</td>
+<td style="text-align:right;">
+0.155
+</td>
+<td style="text-align:right;">
+0.011
+</td>
+<td style="text-align:right;">
+0.409
+</td>
+<td style="text-align:right;">
+0.441
+</td>
+<td style="text-align:right;">
+0.129
+</td>
+<td style="text-align:right;">
+0.011
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+neutral
+</td>
+<td style="text-align:right;">
+90.0
+</td>
+<td style="text-align:right;">
+0.300
+</td>
+<td style="text-align:right;">
+0.000
+</td>
+<td style="text-align:right;">
+0.228
+</td>
+<td style="text-align:right;">
+0.433
+</td>
+<td style="text-align:right;">
+0.306
+</td>
+<td style="text-align:right;">
+0.033
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+satisfied
+</td>
+<td style="text-align:right;">
+88.5
+</td>
+<td style="text-align:right;">
+0.295
+</td>
+<td style="text-align:right;">
+0.011
+</td>
+<td style="text-align:right;">
+0.068
+</td>
+<td style="text-align:right;">
+0.311
+</td>
+<td style="text-align:right;">
+0.316
+</td>
+<td style="text-align:right;">
+0.294
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+very satisfied
+</td>
+<td style="text-align:right;">
+67.5
+</td>
+<td style="text-align:right;">
+0.225
+</td>
+<td style="text-align:right;">
+0.000
+</td>
+<td style="text-align:right;">
+0.007
+</td>
+<td style="text-align:right;">
+0.044
+</td>
+<td style="text-align:right;">
+0.385
+</td>
+<td style="text-align:right;">
+0.563
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div id="weighted-agreement" class="section level3">
+<h3>Weighted agreement</h3>
+<p>For ordinal data it might also be useful to look at the agreement when they may be one category off. So the agreement plus or minus one category, that categories is weighted (default weight=1).</p>
+<pre class="r"><code>weighted.agreement(data1)</code></pre>
+<pre><code>## [1] 0.93</code></pre>
+<pre class="r"><code>weighted.agreement(data1, weight=0.5)</code></pre>
+<pre><code>## [1] 0.6816667</code></pre>
+</div>
+</div>
+<div id="nominal-data-example" class="section level2">
+<h2>nominal data example</h2>
+<p>For the nominal data example we use a data set that was used in a paper by <span class="citation"><a href="#ref-fleis1971" role="doc-biblioref">Fleis</a> (<a href="#ref-fleis1971" role="doc-biblioref">1971</a>)</span>. In this data patients are diagnosed in 5 categories: Depression, Personality Disorder, Schizophrenia, Neurosis, and Other by 6 raters.</p>
+<pre class="r"><code>data(diagnoses) 
+data2 &lt;- data.frame(lapply(diagnoses,as.factor), stringsAsFactors = TRUE)
+
+ levels(data2$rater1) &lt;- c(&quot;Depression&quot;, &quot;Pers disord.&quot;, &quot;Schizophrenia&quot;, &quot;Neurosis&quot;, &quot;Other&quot;)
+ levels(data2$rater2) &lt;- c(&quot;Depression&quot;, &quot;Pers disord.&quot;, &quot;Schizophrenia&quot;, &quot;Neurosis&quot;, &quot;Other&quot;)
+ levels(data2$rater3) &lt;- c(&quot;Depression&quot;, &quot;Pers disord.&quot;, &quot;Schizophrenia&quot;, &quot;Neurosis&quot;, &quot;Other&quot;)
+ levels(data2$rater4) &lt;- c(&quot;Depression&quot;, &quot;Pers disord.&quot;, &quot;Schizophrenia&quot;, &quot;Neurosis&quot;, &quot;Other&quot;)
+ levels(data2$rater5) &lt;- c(&quot;Depression&quot;, &quot;Pers disord.&quot;, &quot;Schizophrenia&quot;, &quot;Neurosis&quot;, &quot;Other&quot;)</code></pre>
+<div id="agreement-table-1" class="section level3">
+<h3>Agreement table</h3>
+<p>First the agreement table are summed for all rater combinations into one agreement table. Then the off diagonal cells are averaged to obtain symmetry agreement tables.</p>
+<pre class="r"><code>sumtable(data2,offdiag = FALSE) %&gt;% kable()</code></pre>
+<table>
+<thead>
+<tr>
+<th style="text-align:left;">
+</th>
+<th style="text-align:right;">
+Depression
+</th>
+<th style="text-align:right;">
+Pers disord.
+</th>
+<th style="text-align:right;">
+Schizophrenia
+</th>
+<th style="text-align:right;">
+Neurosis
+</th>
+<th style="text-align:right;">
+Other
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+Depression
+</td>
+<td style="text-align:right;">
+23
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+11
+</td>
+<td style="text-align:right;">
+20
+</td>
+<td style="text-align:right;">
+1
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Pers disord.
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+23
+</td>
+<td style="text-align:right;">
+6
+</td>
+<td style="text-align:right;">
+17
+</td>
+<td style="text-align:right;">
+5
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Schizophrenia
+</td>
+<td style="text-align:right;">
+7
+</td>
+<td style="text-align:right;">
+4
+</td>
+<td style="text-align:right;">
+36
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+2
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Neurosis
+</td>
+<td style="text-align:right;">
+10
+</td>
+<td style="text-align:right;">
+16
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+53
+</td>
+<td style="text-align:right;">
+1
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Other
+</td>
+<td style="text-align:right;">
+8
+</td>
+<td style="text-align:right;">
+5
+</td>
+<td style="text-align:right;">
+6
+</td>
+<td style="text-align:right;">
+2
+</td>
+<td style="text-align:right;">
+43
+</td>
+</tr>
+</tbody>
+</table>
+<pre class="r"><code>sumtable(data2,offdiag = TRUE) %&gt;% kable()</code></pre>
+<table>
+<thead>
+<tr>
+<th style="text-align:left;">
+</th>
+<th style="text-align:right;">
+Depression
+</th>
+<th style="text-align:right;">
+Pers disord.
+</th>
+<th style="text-align:right;">
+Schizophrenia
+</th>
+<th style="text-align:right;">
+Neurosis
+</th>
+<th style="text-align:right;">
+Other
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+Depression
+</td>
+<td style="text-align:right;">
+23.0
+</td>
+<td style="text-align:right;">
+0.5
+</td>
+<td style="text-align:right;">
+9
+</td>
+<td style="text-align:right;">
+15.0
+</td>
+<td style="text-align:right;">
+4.5
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Pers disord.
+</td>
+<td style="text-align:right;">
+0.5
+</td>
+<td style="text-align:right;">
+23.0
+</td>
+<td style="text-align:right;">
+5
+</td>
+<td style="text-align:right;">
+16.5
+</td>
+<td style="text-align:right;">
+5.0
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Schizophrenia
+</td>
+<td style="text-align:right;">
+9.0
+</td>
+<td style="text-align:right;">
+5.0
+</td>
+<td style="text-align:right;">
+36
+</td>
+<td style="text-align:right;">
+0.0
+</td>
+<td style="text-align:right;">
+4.0
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Neurosis
+</td>
+<td style="text-align:right;">
+15.0
+</td>
+<td style="text-align:right;">
+16.5
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+53.0
+</td>
+<td style="text-align:right;">
+1.5
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Other
+</td>
+<td style="text-align:right;">
+4.5
+</td>
+<td style="text-align:right;">
+5.0
+</td>
+<td style="text-align:right;">
+4
+</td>
+<td style="text-align:right;">
+1.5
+</td>
+<td style="text-align:right;">
+43.0
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div id="agreement-1" class="section level3">
+<h3>Agreement</h3>
+<p>From the agreement table we can calculate the agreement. And we can calculate the confidence interval around this agreement.</p>
+<pre class="r"><code>agreement(data2)</code></pre>
+<pre><code>## [1] 0.5933333</code></pre>
+<pre class="r"><code>CIagreement(data2)</code></pre>
+<pre><code>##     CIlow agreement    CIhigh 
+## 0.4832393 0.5933333 0.6959584</code></pre>
+</div>
+<div id="specific-agreement-1" class="section level3">
+<h3>Specific agreement</h3>
+<p>The specific agreement for polytomous data, can be defined in two ways: the agreement of for one category versus not that category (e.g. Depression versus all other categories) or the agreement for one category versus any other (e.g. Depression versus Schizophrenia). The confidence intervals for specific agreement are bootstrapped.</p>
+<pre class="r"><code>specific.agreement(data2, cat1=&quot;Depression&quot;)</code></pre>
+<pre><code>## [1] 0.4423077</code></pre>
+<pre class="r"><code>CIagreement(data2, cat1=&quot;Depression&quot;)</code></pre>
+<pre><code>##   BCIlow.2.5%     agreement BCIhigh.97.5% 
+##     0.1428571     0.4423077     0.6572465</code></pre>
+<pre class="r"><code>specific.agreement(data2, cat1=&quot;Pers disord.&quot;)</code></pre>
+<pre><code>## [1] 0.46</code></pre>
+<pre class="r"><code>CIagreement(data2, cat1=&quot;Pers disord.&quot;)</code></pre>
+<pre><code>##   BCIlow.2.5%     agreement BCIhigh.97.5% 
+##     0.2272727     0.4600000     0.6818561</code></pre>
+<pre class="r"><code>specific.agreement(data2, cat1=&quot;Schizophrenia&quot;)</code></pre>
+<pre><code>## [1] 0.6666667</code></pre>
+<pre class="r"><code>CIagreement(data2, cat1=&quot;Schizophrenia&quot;)</code></pre>
+<pre><code>##   BCIlow.2.5%     agreement BCIhigh.97.5% 
+##     0.4687500     0.6666667     0.8200000</code></pre>
+<pre class="r"><code>specific.agreement(data2, cat1=&quot;Neurosis&quot;)</code></pre>
+<pre><code>## [1] 0.6162791</code></pre>
+<pre class="r"><code>CIagreement(data2, cat1=&quot;Neurosis&quot;)</code></pre>
+<pre><code>##   BCIlow.2.5%     agreement BCIhigh.97.5% 
+##     0.4838575     0.6162791     0.7317286</code></pre>
+<pre class="r"><code>specific.agreement(data2, cat1=&quot;Other&quot;)</code></pre>
+<pre><code>## [1] 0.7413793</code></pre>
+<pre class="r"><code>CIagreement(data2, cat1=&quot;Other&quot;)</code></pre>
+<pre><code>##   BCIlow.2.5%     agreement BCIhigh.97.5% 
+##     0.3823529     0.7413793     0.9242424</code></pre>
+</div>
+<div id="conditional-agreement" class="section level3">
+<h3>Conditional agreement</h3>
+<pre class="r"><code>conditional.agreement(data2) %&gt;% kable()</code></pre>
+<table>
+<thead>
+<tr>
+<th style="text-align:left;">
+</th>
+<th style="text-align:right;">
+prevalence
+</th>
+<th style="text-align:right;">
+proportion
+</th>
+<th style="text-align:right;">
+Depression
+</th>
+<th style="text-align:right;">
+Pers disord.
+</th>
+<th style="text-align:right;">
+Schizophrenia
+</th>
+<th style="text-align:right;">
+Neurosis
+</th>
+<th style="text-align:right;">
+Other
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+Depression
+</td>
+<td style="text-align:right;">
+52
+</td>
+<td style="text-align:right;">
+0.1733333
+</td>
+<td style="text-align:right;">
+0.442
+</td>
+<td style="text-align:right;">
+0.010
+</td>
+<td style="text-align:right;">
+0.173
+</td>
+<td style="text-align:right;">
+0.288
+</td>
+<td style="text-align:right;">
+0.087
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Pers disord.
+</td>
+<td style="text-align:right;">
+50
+</td>
+<td style="text-align:right;">
+0.1666667
+</td>
+<td style="text-align:right;">
+0.010
+</td>
+<td style="text-align:right;">
+0.460
+</td>
+<td style="text-align:right;">
+0.100
+</td>
+<td style="text-align:right;">
+0.330
+</td>
+<td style="text-align:right;">
+0.100
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Schizophrenia
+</td>
+<td style="text-align:right;">
+54
+</td>
+<td style="text-align:right;">
+0.1800000
+</td>
+<td style="text-align:right;">
+0.167
+</td>
+<td style="text-align:right;">
+0.093
+</td>
+<td style="text-align:right;">
+0.667
+</td>
+<td style="text-align:right;">
+0.000
+</td>
+<td style="text-align:right;">
+0.074
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Neurosis
+</td>
+<td style="text-align:right;">
+86
+</td>
+<td style="text-align:right;">
+0.2866667
+</td>
+<td style="text-align:right;">
+0.174
+</td>
+<td style="text-align:right;">
+0.192
+</td>
+<td style="text-align:right;">
+0.000
+</td>
+<td style="text-align:right;">
+0.616
+</td>
+<td style="text-align:right;">
+0.017
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Other
+</td>
+<td style="text-align:right;">
+58
+</td>
+<td style="text-align:right;">
+0.1933333
+</td>
+<td style="text-align:right;">
+0.078
+</td>
+<td style="text-align:right;">
+0.086
+</td>
+<td style="text-align:right;">
+0.069
+</td>
+<td style="text-align:right;">
+0.026
+</td>
+<td style="text-align:right;">
+0.741
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div id="references" class="section level2 unnumbered">
+<h2>References</h2>
+<div id="refs" class="references csl-bib-body hanging-indent">
+<div id="ref-devet2018" class="csl-entry">
+de Vet, H. C. W., M. G. Mullender, and I Eekhout. 2018. <span>“Specific Agreement on Ordinal and Multiple Nominal Outcomes Can Be Calculated for More Than Two Raters.”</span> <em>Journal of Clinical Epidemiology</em> 96: 47–53. <a href="https://www.jclinepi.com/article/S0895-4356(16)30837-X/abstract">https://www.jclinepi.com/article/S0895-4356(16)30837-X/abstract</a>.
+</div>
+<div id="ref-dikmans2017" class="csl-entry">
+Dikmans, R. E., L. Nene, M. B. Bouman, H. C. W. de Vet, M. Mireau, M. E. Buncamper, H. Winters, M. Ritt, and M. G. Mullender. 2017. <span>“The Aesthetic Items Scale: A Tool for the Evaluation of Aesthetic Outcome After Breast Reconstruction.”</span> <em>Plastic and Reconstructive Surgery. Global Open.</em> 5 (3): e1254.
+</div>
+<div id="ref-fleis1971" class="csl-entry">
+Fleis, J. L. 1971. <span>“Measuring Nominal Scale Agreement Among Many Raters.”</span> <em>Psychologiclal Bulletin</em> 76 (5): 378–82.
+</div>
+</div>
+</div>
