@@ -3,6 +3,8 @@ title: Don't Miss Out!
 summary: Missing data occurs in many empirical studies. It is vital for study results to handle the missing data correctly. The best solution to deal with missing data depends on the reasons for the occurrence of missing data and on the analysis that is planned. In the project a guide was developed to find the best way to deal with missing data in multi-item questionnaires. The website www.missingdata.nl also provides a lot of information about missing data and methodology. 
 tags:
 - missing data
+- multiple imputation
+- multi-item questionnaires
 date: ""
 
 # Optional external URL for project (replaces project detail page).
@@ -16,7 +18,7 @@ links:
 #- icon: asterisk
 #  icon_pack: fab
 #  name: website
-url: https://www.missingdata.nl
+url: "www.missingdata.nl"
 url_code: ""
 url_pdf: ""
 url_slides: ""
