@@ -1,7 +1,7 @@
 ---
 title: Agreement for polytomous outcomes
 author: 'Iris Eekhout'
-date: '2021-04-07'
+date: '2021-03-24'
 slug: []
 categories: []
 tags:
