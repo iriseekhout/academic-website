@@ -8,7 +8,7 @@ tags:
   - Agreement
   - raters
 subtitle: ''
-summary: ''
+summary: 'This document describes the use of the Agree package for the data example that was used in the paper on specific agreement on dichotomous outcomes in the situation of more than two raters.'
 authors: []
 lastmod: '2021-03-24T15:16:31+01:00'
 featured: no
@@ -120,11 +120,11 @@ head(data1)</code></pre>
 <pre class="r"><code>agreement(data1, specific=&quot;satisfied&quot;, confint = TRUE)</code></pre>
 <pre><code>##                                       p     lower     upper
 ## overall agreement             0.7466667 0.6608408 0.8215369
-## specific agreement: satisfied 0.7564103 0.6421444 0.8496857</code></pre>
+## specific agreement: satisfied 0.7564103 0.6407977 0.8505168</code></pre>
 <pre class="r"><code>agreement(data1, specific=&quot;not satisfied&quot;, confint = TRUE)</code></pre>
 <pre><code>##                                           p     lower     upper
 ## overall agreement                 0.7466667 0.6608408 0.8215369
-## specific agreement: not satisfied 0.7361111 0.6141579 0.8365044</code></pre>
+## specific agreement: not satisfied 0.7361111 0.6156558 0.8355576</code></pre>
 </div>
 <div id="validation-of-confidence-interval" class="section level3">
 <h3>Validation of Confidence interval</h3>

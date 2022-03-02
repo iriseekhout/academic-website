@@ -8,7 +8,7 @@ tags:
   - Agreement
   - raters
 subtitle: ''
-summary: ''
+summary: 'This document describes the use of the Agree package for two data examples that are used in the paper on specific agreement on polytomous outcomes in the situation of more than two raters. The first data example is an example of ordinal ratings and the second example of nominal rating. '
 authors: []
 lastmod: '2021-03-24T14:33:58+01:00'
 featured: no
@@ -325,15 +325,15 @@ very satisfied
 <pre class="r"><code>agreement(data1, specific=&quot;satisfied&quot;, confint = TRUE)</code></pre>
 <pre><code>##                                       p     lower     upper
 ## overall agreement             0.4333333 0.3286321 0.5434725
-## specific agreement: satisfied 0.3163842 0.2150346 0.4089048</code></pre>
+## specific agreement: satisfied 0.3163842 0.2083333 0.4021164</code></pre>
 <pre class="r"><code>agreement(data1, specific=c(&quot;satisfied&quot;, &quot;very satisfied&quot;), confint = TRUE)</code></pre>
 <pre><code>##                                                         p     lower     upper
 ## overall agreement                               0.4333333 0.3286321 0.5434725
-## specific agreement: satisfied vs very satisfied 0.5185185 0.3750000 0.6506072</code></pre>
+## specific agreement: satisfied vs very satisfied 0.5185185 0.3749708 0.6465067</code></pre>
 <pre class="r"><code>agreement(data1, specific= c(&quot;satisfied&quot;,&quot;neutral&quot;), confint = TRUE)</code></pre>
 <pre><code>##                                                  p     lower     upper
 ## overall agreement                        0.4333333 0.3286321 0.5434725
-## specific agreement: satisfied vs neutral 0.5045045 0.3695569 0.6243485</code></pre>
+## specific agreement: satisfied vs neutral 0.5045045 0.3683503 0.6346415</code></pre>
 </div>
 <div id="conditional-probability" class="section level3">
 <h3>Conditional probability</h3>
@@ -1222,23 +1222,23 @@ Other
 <pre class="r"><code>agreement(data2, specific=&quot;Depression&quot;, confint = TRUE)</code></pre>
 <pre><code>##                                        p     lower     upper
 ## overall agreement              0.3955556 0.2805873 0.5200202
-## specific agreement: Depression 0.3538462 0.1200000 0.5333333</code></pre>
+## specific agreement: Depression 0.3538462 0.1270909 0.5400135</code></pre>
 <pre class="r"><code>agreement(data2, specific=&quot;Pers disord.&quot;, confint = TRUE)</code></pre>
 <pre><code>##                                          p     lower     upper
 ## overall agreement                0.3955556 0.2805873 0.5200202
-## specific agreement: Pers disord. 0.3680000 0.1750000 0.5334091</code></pre>
+## specific agreement: Pers disord. 0.3680000 0.1881961 0.5478514</code></pre>
 <pre class="r"><code>agreement(data2, specific=&quot;Schizophrenia&quot;, confint = TRUE)</code></pre>
 <pre><code>##                                           p     lower     upper
 ## overall agreement                 0.3955556 0.2805873 0.5200202
-## specific agreement: Schizophrenia 0.5333333 0.3750000 0.6666667</code></pre>
+## specific agreement: Schizophrenia 0.5333333 0.3748558 0.6571849</code></pre>
 <pre class="r"><code>agreement(data2, specific=&quot;Neurosis&quot;, confint = TRUE)</code></pre>
 <pre><code>##                                      p     lower     upper
 ## overall agreement            0.3955556 0.2805873 0.5200202
-## specific agreement: Neurosis 0.4930233 0.3851556 0.5860465</code></pre>
+## specific agreement: Neurosis 0.4930233 0.3857011 0.5887080</code></pre>
 <pre class="r"><code>agreement(data2, specific=&quot;Other&quot;, confint = TRUE)</code></pre>
 <pre><code>##                                   p     lower     upper
 ## overall agreement         0.3955556 0.2805873 0.5200202
-## specific agreement: Other 0.5931034 0.3428571 0.7282051</code></pre>
+## specific agreement: Other 0.5931034 0.3110606 0.7345909</code></pre>
 </div>
 <div id="conditional-agreement" class="section level3">
 <h3>Conditional agreement</h3>

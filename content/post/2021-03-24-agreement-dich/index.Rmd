@@ -8,7 +8,7 @@ tags:
   - Agreement
   - raters
 subtitle: ''
-summary: ''
+summary: 'This document describes the use of the Agree package for the data example that was used in the paper on specific agreement on dichotomous outcomes in the situation of more than two raters.'
 authors: []
 lastmod: '2021-03-24T15:16:31+01:00'
 featured: no

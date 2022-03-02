@@ -11,7 +11,7 @@ tags:
   - questionnaire data
   - mice
 subtitle: ''
-summary: ''
+summary: 'This post demonstrates how to perform passive multiple imputation in a fictive simulated dataset that contains five multi-item questionnaires each containing 10 items.'
 authors: []
 lastmod: '2022-03-02T16:05:53+01:00'
 featured: no
