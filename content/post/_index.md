@@ -1,7 +1,7 @@
 ---
 title: Posts
 cms_exclude: true
-
+active : true
 # View.
 #   1 = List
 #   2 = Compact

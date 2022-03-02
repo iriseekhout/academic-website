@@ -1,0 +1,371 @@
+---
+title: Passive multiple imputation
+author: 'Iris Eekhout'
+date: '2022-03-02'
+slug: []
+categories: []
+tags:
+  - Multiple imputation
+  - passive imputation
+  - missing items
+  - questionnaire data
+  - mice
+subtitle: ''
+summary: ''
+authors: []
+lastmod: '2022-03-02T16:05:53+01:00'
+featured: no
+image:
+  caption: ''
+  focal_point: ''
+  preview_only: no
+projects: ["dmo"]
+output: 
+  blogdown::html_page:
+    toc: true
+    fig_width: 6
+    dev: "svg"
+---
+
+<script src="{{< blogdown/postref >}}index_files/header-attrs/header-attrs.js"></script>
+
+<div id="TOC">
+<ul>
+<li><a href="#generate-simulated-data">Generate simulated data</a>
+<ul>
+<li><a href="#generate-missing-values">Generate missing values</a></li>
+<li><a href="#calculate-total-scores-for-questionnaires">Calculate total scores for questionnaires</a></li>
+</ul></li>
+<li><a href="#passive-multiple-imputation">Passive multiple imputation</a>
+<ul>
+<li><a href="#initialize-imputation-model-for-total-score-imputation">Initialize imputation model for total score imputation</a></li>
+<li><a href="#set-up-imputation-model-for-passive-imputation">Set up imputation model for passive imputation</a></li>
+</ul></li>
+<li><a href="#apply-final-imputations">Apply final imputations</a>
+<ul>
+<li><a href="#check-iteration-plots">Check iteration plots</a></li>
+</ul></li>
+<li><a href="#combine-imputations">Combine imputations</a></li>
+<li><a href="#analyze-and-pool">Analyze and pool</a></li>
+</ul>
+</div>
+
+<p>This document demonstrates how to perform passive multiple imputation in a fictive simulated dataset that contains five multi-item questionnaires each containing 10 items. In this document the following packages are used: <code>mice</code>, <code>mitools</code> and <code>dmo</code>.</p>
+<pre class="r"><code>library(mice)
+library(mitools)
+library(dmo)</code></pre>
+<div id="generate-simulated-data" class="section level2">
+<h2>Generate simulated data</h2>
+<p>Data are generated for 100 subjects. Each subjects has observations for 5 questionnaires and 3 covariates.</p>
+<pre class="r"><code>#generate questionnaire data
+k &lt;- c(10,10,10,10,10)
+nq &lt;- 5
+x &lt;- dmo::gen_qdata(n=100, nq=nq, k= k)
+
+#generate covariate data
+cov &lt;- MASS::mvrnorm(n=100, mu=c(5,5,5), Sigma=matrix(c(10,1,1,1,10,1,1,1,10),3,3))
+colnames(cov) &lt;- c(&quot;cov1&quot;, &quot;cov2&quot;, &quot;cov3&quot;)
+
+#combine in data.frame
+x &lt;- data.frame(x,cov)</code></pre>
+<div id="generate-missing-values" class="section level3">
+<h3>Generate missing values</h3>
+<p>Missing values are generated with the MAR mechanism for 25% of the subjects with a random pattern. Missings are only generated in the item scores (not in the covariates).</p>
+<pre class="r"><code>alpha &lt;- 0.25
+
+#regerate 2 random patterns for missing item data
+pattern &lt;- matrix(c(sample(c(0,1), size=2*sum(k),replace = TRUE)),nrow=2)
+pattern &lt;- cbind(pattern, matrix(c(1,1,1,1,1,1),nrow=2))
+pattern</code></pre>
+<pre><code>##      [,1] [,2] [,3] [,4] [,5] [,6] [,7] [,8] [,9] [,10] [,11] [,12] [,13] [,14]
+## [1,]    0    1    0    0    0    0    1    0    0     1     1     0     1     0
+## [2,]    1    1    1    0    0    0    0    0    0     1     1     0     1     0
+##      [,15] [,16] [,17] [,18] [,19] [,20] [,21] [,22] [,23] [,24] [,25] [,26]
+## [1,]     0     1     1     1     0     1     1     0     0     1     1     1
+## [2,]     1     0     1     1     1     0     1     0     0     0     0     0
+##      [,27] [,28] [,29] [,30] [,31] [,32] [,33] [,34] [,35] [,36] [,37] [,38]
+## [1,]     0     0     0     1     1     0     1     0     1     1     0     0
+## [2,]     0     1     1     0     0     0     0     0     0     1     0     0
+##      [,39] [,40] [,41] [,42] [,43] [,44] [,45] [,46] [,47] [,48] [,49] [,50]
+## [1,]     1     1     0     1     0     0     1     1     0     0     0     0
+## [2,]     1     1     0     1     1     1     0     1     1     0     0     0
+##      [,51] [,52] [,53]
+## [1,]     1     1     1
+## [2,]     1     1     1</code></pre>
+<pre class="r"><code>#apply each pattern with equal frequency and equal odds
+f &lt;- c(0.5,0.5)
+g &lt;- c(4,4)
+
+#generate missings in the data
+x &lt;- MAR(x,alpha,pattern,f,g)
+colnames(x) &lt;- c(paste0(&quot;I&quot;,1:sum(k)),c(&quot;cov1&quot;, &quot;cov2&quot;, &quot;cov3&quot;) )
+
+head(x, 10)</code></pre>
+<pre><code>##               I1         I2          I3         I4         I5         I6
+##  [1,]  1.0494182 -0.8375824 -1.94607899 -4.2344061  2.1719663 -2.7810432
+##  [2,] -0.9936544  0.7160841  3.30510418 -1.6771767 -1.7232476  2.8896997
+##  [3,]  0.8106367 -0.4601143  2.29674386 -1.9712437  1.1133198 -0.2441109
+##  [4,] -1.8263165  1.3971403  4.34914118 -1.4456866  2.1159288  0.7235485
+##  [5,] -4.0094252  1.2587979 -3.14182630 -5.4386864 -7.3893282 -2.0810487
+##  [6,] -0.5202366 -0.3319228 -4.29722010 -0.8135719 -2.2338809  1.6956509
+##  [7,]  2.7609822  2.4463873 -2.64702611 -5.0706898 -1.8247280 -1.5955374
+##  [8,] -1.2382634  2.4127925 -0.72327656  3.9943903  3.4118582  0.3782804
+##  [9,]  3.1385554  1.4225628 -0.09026045 -0.1064799  0.4558989  0.1461109
+## [10,]  3.2269843 -6.7942273  1.46531369  1.0835071 -0.8922101  0.1483189
+##                I7         I8         I9        I10        I11        I12
+##  [1,]  0.01542288 -0.5736996  3.4834414 -1.1741238 -2.4781179 -1.3034431
+##  [2,]  1.23975979  1.9084450 -2.1343316  0.7191415 -0.3850773  2.9804540
+##  [3,]  1.34884033 -3.3512209  0.3876308  0.2759879  0.9496574 -1.4289249
+##  [4,] -2.23485046 -0.5853733  0.9231983  0.2906557  3.5592323  2.5295804
+##  [5,] -4.00515652 -2.9958163 -0.4217744 -2.2241158 -1.7208092  0.4419452
+##  [6,]  1.47765141  3.9747057 -1.7255759 -0.6026154 -1.3042286 -0.2823001
+##  [7,]  2.65848274  0.6192392 -1.4416546 -2.3535774 -0.2234134 -2.0925691
+##  [8,]  1.81022967  2.4201025 -1.8493192  2.3027520  3.0404762  2.2429710
+##  [9,] -1.57020639 -2.1094611  3.2763287  1.5849587  2.6635623  0.4765954
+## [10,]  2.33700788  1.1523246  1.2054311  0.6692174  1.9474671  3.2505897
+##              I13        I14         I15        I16        I17        I18
+##  [1,]  0.2748672  1.8612214 -4.73333562 -0.5173406 -1.0719522 -0.3478902
+##  [2,]  0.1131999  0.6301755  1.46524674 -0.0458033 -1.0326271  3.3557135
+##  [3,]  0.2994746  0.5107150  2.71451450 -1.2896358 -0.2406228 -0.1608549
+##  [4,]  3.0548451  0.3339629  0.34262164 -1.3575716 -1.0126854  0.1572434
+##  [5,]  1.3469683 -0.1715487 -1.89960665 -1.2705474 -4.3689247  3.2752212
+##  [6,] -2.9319760 -2.5859380  2.13223212  1.5943328 -1.4689089 -3.0803305
+##  [7,] -1.5015770  1.3380785 -0.09045928  1.2683914 -0.8667668 -2.9841829
+##  [8,]  0.5395663  1.5647965  0.15839637  1.6693383  0.7343436 -0.2768330
+##  [9,]  5.3037466 -1.4441391 -2.99012448  0.9484190  2.7850884 -0.2099681
+## [10,] -2.5122678  1.3363047  1.93420167  0.9767475  1.4579800 -2.6429900
+##              I19         I20         I21         I22        I23        I24
+##  [1,] -0.1465831 -3.06286570 -2.76848086  1.91980614  0.8234728 -2.0262803
+##  [2,] -0.6851461  0.04149093 -2.88061916  0.09789583 -2.0852175 -1.5128567
+##  [3,] -1.6360154  1.26178600 -0.02109174 -1.19174386 -1.1391020  2.7000730
+##  [4,]  1.9539205 -3.45512951  1.60563772 -1.36976515 -0.1412667  0.1845379
+##  [5,] -1.0079256 -1.52627856  1.43780278 -5.09078378 -0.9676428 -0.2967962
+##  [6,] -0.2538594  0.98130789  1.89292261 -0.07084381  1.9094216  0.4124735
+##  [7,]  1.6257860 -1.20444278 -1.98754159 -2.51625368  4.0323906 -0.6184208
+##  [8,]  0.6280585  3.11269021  0.55828262  2.34297050  0.8955507  4.0024787
+##  [9,]  1.6223690  0.82626163  1.27053052  0.44173955 -0.2413896  2.0435824
+## [10,]  1.6782026  0.80053551 -2.93139486 -0.75565752 -0.7689956  2.3411732
+##              I25        I26        I27        I28         I29        I30
+##  [1,] -2.4836051 -2.7852406 -1.6938277  1.8777613 -2.05254289  0.4408827
+##  [2,]  2.2815565  2.4171702  0.6072791 -0.9197167  4.80222937 -0.8809962
+##  [3,]  3.0341942 -2.6607395 -2.0164676  0.8694387 -1.10332490  0.4959473
+##  [4,]  2.1314720 -1.8260511  2.2505015 -2.1133055  1.10604925 -0.6296680
+##  [5,]  1.3458282 -1.7080951 -2.9950203  3.7602560 -1.59767870 -1.4663976
+##  [6,]  0.8234326  0.3655559  3.8956813 -0.2249730  2.33251608  1.2846853
+##  [7,] -0.9377932 -1.7380951 -1.3294057 -3.8973381 -1.27285979  1.7523121
+##  [8,]  2.3237918  1.4567350  2.1630416 -1.1445350  2.92139727  2.1737497
+##  [9,]  3.1800037  2.0889718  0.7708075 -0.6776138  2.34705115 -1.5933764
+## [10,]  1.0358839 -1.5462610  3.0084956  2.4258639  0.02131918  1.3493157
+##              I31         I32        I33         I34        I35        I36
+##  [1,] -2.9284585 -4.19366135 -2.0552270 -3.46126007 -0.3533017 -6.6864504
+##  [2,]  0.1151294  2.39236120  0.5827034  0.94561314 -0.2110000 -1.8728370
+##  [3,] -1.8036086 -0.71985671 -4.2942325  1.52480803  0.7349304 -1.0511365
+##  [4,]  0.0155575 -1.63592659 -1.1790982  0.96662461  2.3807399 -1.8082573
+##  [5,] -3.4221387 -1.22692315 -3.3715694  0.02801398 -4.5077144  0.8303373
+##  [6,] -1.8452212 -1.36226320 -1.0083156 -3.08699832 -2.4976302  0.6374839
+##  [7,]  4.3442629  4.18039077  2.6150790 -1.86820324  0.5200212  0.1820227
+##  [8,] -2.4990900  0.60918699 -0.8687977 -0.58156951 -0.6060738  5.9454825
+##  [9,]  1.2278713 -0.02527748 -0.9371037  3.10620740 -1.9656130  3.7653213
+## [10,] -1.5205527  3.23154350 -0.6439349  2.39734147  1.9126320  2.7333981
+##              I37        I38         I39        I40        I41        I42
+##  [1,]  0.6722284 -2.1848958 -3.29871184  1.2769224  0.1423091  2.3124535
+##  [2,] -1.1542251 -3.3683212  0.07010751 -3.0817944  2.7230622 -0.3348536
+##  [3,] -3.8921967  2.9076362 -0.65935839  0.9808848  3.5346060  0.9030039
+##  [4,] -1.0714064  1.4868485 -0.61748203 -0.6628329  0.6235261  1.0615665
+##  [5,]  1.4546009 -2.6265064 -2.51663464 -0.2710653 -1.3045352 -5.2933354
+##  [6,] -2.1274770 -0.6855496 -1.86911464  0.4733432  0.4078411 -1.3004847
+##  [7,] -0.1972068 -1.5308474 -0.53755074  0.9260481  2.0752056  2.1625533
+##  [8,]  2.0582986  0.9786711  2.64330890  1.2684855  0.1865653  4.8173846
+##  [9,]  1.6727620  1.1832366 -0.16952787  4.5301007  1.7892350 -1.0542298
+## [10,] -1.2334323  1.8284749  3.05968669  0.5064185  2.3207448  1.7017593
+##               I43        I44          I45        I46        I47        I48
+##  [1,]  1.18709041 -2.2984296 -2.185896585 -0.6776078 -1.0379155  0.6254394
+##  [2,]  1.80533725 -1.7976832  0.760823065  0.4512695  0.4653395 -1.2956524
+##  [3,] -1.50119878  0.8890132 -0.638787866 -6.2390552 -1.5682963  1.4176702
+##  [4,]  3.65616393 -2.2366709  3.819593420  2.4900332  1.4880860  2.5375222
+##  [5,] -2.29402459 -2.6050982  0.003591849  1.5412166 -3.9584608 -3.8027267
+##  [6,] -1.02888693 -2.2267877 -1.702374794 -1.1311037 -3.1280177 -1.8342690
+##  [7,] -2.20538604  3.8068043  2.471825265 -0.5113178  0.7896840  3.7796039
+##  [8,] -0.53367051  2.8954525  2.589230496 -2.1582250  3.8674389  3.4534148
+##  [9,]  0.64498357 -2.0754485  0.768207709 -0.8336869  0.2995403  1.9752781
+## [10,]  0.03603389  1.1449238  1.937186874  1.8451642  0.2182666  4.0291875
+##              I49         I50     cov1       cov2       cov3
+##  [1,] -1.5654667 -0.06989139 1.306767  8.4328493  2.8955470
+##  [2,] -0.0270345  1.74153578 8.993273  1.4083687  7.1852910
+##  [3,]  0.7063364 -0.25323118 4.067712  4.1454123 -0.4498762
+##  [4,]  1.6684343 -3.72932332 7.854717  4.8700914  5.3469169
+##  [5,] -1.3796837  1.30074015 4.083232  5.5340064  0.6590253
+##  [6,] -2.4891813  0.42647707 5.468035  9.6159448  6.5164601
+##  [7,]  1.6982253 -1.42849485 8.220178  4.0590096  5.1173347
+##  [8,]  1.6013447  1.22073465 3.500358  2.7684520  3.9371234
+##  [9,]  1.0307375  0.41663306 3.613975  0.5953312  3.9110969
+## [10,] -1.7417140  0.95656152 4.335837 -0.9657980  3.5571519</code></pre>
+</div>
+<div id="calculate-total-scores-for-questionnaires" class="section level3">
+<h3>Calculate total scores for questionnaires</h3>
+<p>Calculate the total scores (sum scores) for each questionnaire, only when all items are observed.</p>
+<pre class="r"><code>ts &lt;- dmo::calculate_ts(x, nq=5,k= c(10,10,10,10,10))
+data &lt;- data.frame(x,ts)</code></pre>
+</div>
+</div>
+<div id="passive-multiple-imputation" class="section level2">
+<h2>Passive multiple imputation</h2>
+<p>In passive multiple imputation, the item scores are imputed and then during the imputation, the total score is calculated based on the imputed item scores. These total scores can then be used as predictors for imputations of other variables.</p>
+<p>There are 2 imputation models that are used in this procedure.</p>
+<ol style="list-style-type: decimal">
+<li>The total score of the questionnaires are imputed directly. This model only uses the total scores of the questionnaires an the three covariates. These imputed total scores are used for the subjects that have too many item scores missing, i.e. &gt; 75%.</li>
+<li>The item scores of the questionnaires are imputed, and the total scores are passively imputed, by re-calculating these after each imputation iteration. The re-calculated total scores are used as predictors to impute items from other questionnaires.</li>
+</ol>
+<div id="initialize-imputation-model-for-total-score-imputation" class="section level3">
+<h3>Initialize imputation model for total score imputation</h3>
+<p>For this model, we can use the default settings used in <code>mice</code>.</p>
+<pre class="r"><code>tsdata &lt;- data.frame(ts, cov)
+ini &lt;- mice(tsdata, max=0, print=FALSE)
+ini$meth</code></pre>
+<pre><code>##   TS1   TS2   TS3   TS4   TS5  cov1  cov2  cov3 
+## &quot;pmm&quot; &quot;pmm&quot; &quot;pmm&quot; &quot;pmm&quot; &quot;pmm&quot;    &quot;&quot;    &quot;&quot;    &quot;&quot;</code></pre>
+<pre class="r"><code>ini$predictorMatrix</code></pre>
+<pre><code>##      TS1 TS2 TS3 TS4 TS5 cov1 cov2 cov3
+## TS1    0   1   1   1   1    1    1    1
+## TS2    1   0   1   1   1    1    1    1
+## TS3    1   1   0   1   1    1    1    1
+## TS4    1   1   1   0   1    1    1    1
+## TS5    1   1   1   1   0    1    1    1
+## cov1   1   1   1   1   1    0    1    1
+## cov2   1   1   1   1   1    1    0    1
+## cov3   1   1   1   1   1    1    1    0</code></pre>
+</div>
+<div id="set-up-imputation-model-for-passive-imputation" class="section level3">
+<h3>Set up imputation model for passive imputation</h3>
+<p>For the passive imputation model, we need to adapt the methods for the total scores, and the predictor matrix for the items.</p>
+<div id="methods" class="section level4">
+<h4>Methods</h4>
+<p>First the imputation method is adapted for the questionnaire total scores.</p>
+<pre class="r"><code>ini &lt;- mice(data, max=0, print=FALSE)
+meth &lt;- ini$meth
+
+#for each questionnaire adapt imputation method (meth): make function to calculate TS between iterations. Example TS1:
+#meth[&quot;TS1&quot;] &lt;- &quot;~I(I1+I2+I3+I4+I5+I6+I7+I8+I9+I10)&quot; - loop below automates for simulation data
+nq &lt;- 5
+k &lt;- c(10,10,10,10,10)
+for(q in seq_along(1:nq)){
+  meth[paste0(&quot;TS&quot;,q)] &lt;- paste0(&quot;~I(&quot;, paste(paste0(&quot;I&quot;,1:k[q]), collapse=&quot;+&quot;), &quot;)&quot;)
+}
+meth[c(&quot;TS1&quot;, &quot;TS2&quot;, &quot;TS3&quot;, &quot;TS4&quot;, &quot;TS5&quot;)]</code></pre>
+<pre><code>##                                  TS1                                  TS2 
+## &quot;~I(I1+I2+I3+I4+I5+I6+I7+I8+I9+I10)&quot; &quot;~I(I1+I2+I3+I4+I5+I6+I7+I8+I9+I10)&quot; 
+##                                  TS3                                  TS4 
+## &quot;~I(I1+I2+I3+I4+I5+I6+I7+I8+I9+I10)&quot; &quot;~I(I1+I2+I3+I4+I5+I6+I7+I8+I9+I10)&quot; 
+##                                  TS5 
+## &quot;~I(I1+I2+I3+I4+I5+I6+I7+I8+I9+I10)&quot;</code></pre>
+</div>
+<div id="predictor-matrix" class="section level4">
+<h4>Predictor matrix</h4>
+<p>The the predictor matrix is adapted such that items are imputed by items from their own questionnaire and other total scores.
+In predictor matrix: target variable is in row and the predictor variables are in the column. Below the predictor matrix for imputing the first 10 items is shown.</p>
+<pre class="r"><code>pred &lt;- ini$predictorMatrix
+pred[paste0(&quot;I&quot;, 1:10),] &lt;- 0
+pred[paste0(&quot;I&quot;, 1:10),paste0(&quot;I&quot;, 1:10)] &lt;- 1
+pred[paste0(&quot;I&quot;, 1:10),c(&quot;TS2&quot;,&quot;TS3&quot;,&quot;TS4&quot;,&quot;TS5&quot;)] &lt;- 1
+pred[paste0(&quot;I&quot;, 11:20),] &lt;- 0
+pred[paste0(&quot;I&quot;, 11:20),paste0(&quot;I&quot;, 11:20)] &lt;- 1
+pred[paste0(&quot;I&quot;, 11:20),c(&quot;TS1&quot;,&quot;TS3&quot;,&quot;TS4&quot;,&quot;TS5&quot;)] &lt;- 1
+pred[paste0(&quot;I&quot;, 21:30),] &lt;- 0
+pred[paste0(&quot;I&quot;, 21:30),paste0(&quot;I&quot;, 21:30)] &lt;- 1
+pred[paste0(&quot;I&quot;, 21:30),c(&quot;TS1&quot;,&quot;TS2&quot;,&quot;TS4&quot;,&quot;TS5&quot;)] &lt;- 1
+pred[paste0(&quot;I&quot;, 31:40),] &lt;- 0
+pred[paste0(&quot;I&quot;, 31:40),paste0(&quot;I&quot;, 31:40)] &lt;- 1
+pred[paste0(&quot;I&quot;, 31:40),c(&quot;TS1&quot;,&quot;TS2&quot;,&quot;TS3&quot;,&quot;TS5&quot;)] &lt;- 1
+pred[paste0(&quot;I&quot;, 41:50),] &lt;- 0
+pred[paste0(&quot;I&quot;, 41:50),paste0(&quot;I&quot;, 41:50)] &lt;- 1
+pred[paste0(&quot;I&quot;, 41:50),c(&quot;TS1&quot;,&quot;TS2&quot;,&quot;TS3&quot;,&quot;TS4&quot;)] &lt;- 1
+pred[,colnames(cov)] &lt;- 1 #covariates as predictors for all items
+pred &lt;- pred*ini$predictorMatrix
+head(pred, 10)</code></pre>
+<pre><code>##     I1 I2 I3 I4 I5 I6 I7 I8 I9 I10 I11 I12 I13 I14 I15 I16 I17 I18 I19 I20 I21
+## I1   0  1  1  1  1  1  1  1  1   1   0   0   0   0   0   0   0   0   0   0   0
+## I2   1  0  1  1  1  1  1  1  1   1   0   0   0   0   0   0   0   0   0   0   0
+## I3   1  1  0  1  1  1  1  1  1   1   0   0   0   0   0   0   0   0   0   0   0
+## I4   1  1  1  0  1  1  1  1  1   1   0   0   0   0   0   0   0   0   0   0   0
+## I5   1  1  1  1  0  1  1  1  1   1   0   0   0   0   0   0   0   0   0   0   0
+## I6   1  1  1  1  1  0  1  1  1   1   0   0   0   0   0   0   0   0   0   0   0
+## I7   1  1  1  1  1  1  0  1  1   1   0   0   0   0   0   0   0   0   0   0   0
+## I8   1  1  1  1  1  1  1  0  1   1   0   0   0   0   0   0   0   0   0   0   0
+## I9   1  1  1  1  1  1  1  1  0   1   0   0   0   0   0   0   0   0   0   0   0
+## I10  1  1  1  1  1  1  1  1  1   0   0   0   0   0   0   0   0   0   0   0   0
+##     I22 I23 I24 I25 I26 I27 I28 I29 I30 I31 I32 I33 I34 I35 I36 I37 I38 I39 I40
+## I1    0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0
+## I2    0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0
+## I3    0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0
+## I4    0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0
+## I5    0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0
+## I6    0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0
+## I7    0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0
+## I8    0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0
+## I9    0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0
+## I10   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0   0
+##     I41 I42 I43 I44 I45 I46 I47 I48 I49 I50 cov1 cov2 cov3 TS1 TS2 TS3 TS4 TS5
+## I1    0   0   0   0   0   0   0   0   0   0    1    1    1   0   1   1   1   1
+## I2    0   0   0   0   0   0   0   0   0   0    1    1    1   0   1   1   1   1
+## I3    0   0   0   0   0   0   0   0   0   0    1    1    1   0   1   1   1   1
+## I4    0   0   0   0   0   0   0   0   0   0    1    1    1   0   1   1   1   1
+## I5    0   0   0   0   0   0   0   0   0   0    1    1    1   0   1   1   1   1
+## I6    0   0   0   0   0   0   0   0   0   0    1    1    1   0   1   1   1   1
+## I7    0   0   0   0   0   0   0   0   0   0    1    1    1   0   1   1   1   1
+## I8    0   0   0   0   0   0   0   0   0   0    1    1    1   0   1   1   1   1
+## I9    0   0   0   0   0   0   0   0   0   0    1    1    1   0   1   1   1   1
+## I10   0   0   0   0   0   0   0   0   0   0    1    1    1   0   1   1   1   1</code></pre>
+</div>
+</div>
+</div>
+<div id="apply-final-imputations" class="section level2">
+<h2>Apply final imputations</h2>
+<p>For both imputation procedures we use 15 imputations and 10 iterations. The object <code>imp1</code> contains the imputations for the total scores only from other total scores and the thee covariates. The object <code>imp2</code> for items and total scores with passive imputation.</p>
+<pre class="r"><code>imp1 &lt;- mice(tsdata, 15,maxit=10,seed=61085,print=FALSE)
+imp2 &lt;- mice(data, m=15, meth=meth,pred=pred, maxit=10, seed=12354, print=FALSE)</code></pre>
+<div id="check-iteration-plots" class="section level3">
+<h3>Check iteration plots</h3>
+<p>The the imputations for the Total scores in the total score imputation (<code>imp1</code>) passive imputation procedure (<code>imp2</code>).</p>
+<pre class="r"><code>plot(imp1, paste0(&quot;TS&quot;,1:5))</code></pre>
+<p><img src="{{< blogdown/postref >}}index_files/figure-html/unnamed-chunk-10-1.svg" width="576" /><img src="{{< blogdown/postref >}}index_files/figure-html/unnamed-chunk-10-2.svg" width="576" /></p>
+<pre class="r"><code>plot(imp2, paste0(&quot;TS&quot;,1:5))</code></pre>
+<p><img src="{{< blogdown/postref >}}index_files/figure-html/unnamed-chunk-10-3.svg" width="576" /><img src="{{< blogdown/postref >}}index_files/figure-html/unnamed-chunk-10-4.svg" width="576" /></p>
+</div>
+</div>
+<div id="combine-imputations" class="section level2">
+<h2>Combine imputations</h2>
+<p>Combine imputations and select (per questionnaire) the ts from imp1 for persons with &lt;75% of items missing; and the ts from imp2 for persons with &gt;75% of items missing (in a questionnaire).</p>
+<p>First make indicators for each q if missing &lt;75%:</p>
+<pre class="r"><code>calculate_i &lt;- function(x,nq,k){
+  ind &lt;- matrix(0,nrow=nrow(x), ncol=(nq))
+
+  for (q in 1:(nq)){
+    ind[,q] &lt;- apply(x[,(((q*k[q])-k[q])+1):(q*k[q])],1,function(x) {sum(is.na(x))/length(x)})
+  }
+  colnames(ind) &lt;- paste(&quot;TS&quot;,1:nq,sep=&quot;&quot;)
+  ind &lt;- ifelse(ind &lt;0.75,1,0)
+  ind
+}
+indicator &lt;- calculate_i(x=data, nq=5, k=c(10,10,10,10,10))</code></pre>
+<p>Then select correct TS from each imputation.</p>
+<pre class="r"><code>implist &lt;- lapply(1:15, function(x){
+  x1 &lt;- complete(imp1, x)
+  x2 &lt;- complete(imp2, x)
+  tsimp &lt;- lapply(1:nq, function(x){
+    ifelse(indicator[,x]==1, x2[,paste0(&quot;TS&quot;,x)], x1[,paste0(&quot;TS&quot;,x)] )
+  })
+  tsimp &lt;- data.frame(tsimp)
+  colnames(tsimp) &lt;- paste0(&quot;impTS&quot;,1:nq)
+  data.frame(x1,tsimp)
+})</code></pre>
+</div>
+<div id="analyze-and-pool" class="section level2">
+<h2>Analyze and pool</h2>
+<p>Save data in an imputation list for analysis and test relation between TS1 and TS3</p>
+<pre class="r"><code>impdata &lt;- imputationList(implist)
+fit &lt;- with (impdata, lm(impTS1~impTS3 )) 
+summary(pool (fit))</code></pre>
+<pre><code>##          term   estimate  std.error statistic       df   p.value
+## 1 (Intercept) -0.7662034 0.69919917  -1.09583 95.21723 0.2759172
+## 2      impTS3  0.8098544 0.06738126  12.01899 92.53116 0.0000000</code></pre>
+</div>
