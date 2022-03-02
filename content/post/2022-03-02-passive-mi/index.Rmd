@@ -35,7 +35,9 @@ library(mitools)
 library(dmo)
 ```
 
+
 This document demonstrates how to perform passive multiple imputation in a fictive simulated dataset that contains five multi-item questionnaires each containing 10 items. In this document the following packages are used: `mice`, `mitools` and `dmo`. 
+
 
 ```{r} 
 library(mice)
