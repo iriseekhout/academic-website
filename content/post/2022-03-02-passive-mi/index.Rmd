@@ -19,7 +19,7 @@ image:
   caption: ''
   focal_point: ''
   preview_only: no
-projects: ["dmo"]
+projects: ["dom"]
 blogdown::html_page:
     toc: true
     fig_width: 6
