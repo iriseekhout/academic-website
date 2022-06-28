@@ -5,7 +5,7 @@ tags:
 - missing data
 - multiple imputation
 - multi-item questionnaires
-date: ""
+date: "2015-01-06"
 
 # Optional external URL for project (replaces project detail page).
 external_link: "www.missingdata.nl"
