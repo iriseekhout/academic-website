@@ -11,7 +11,7 @@ tags:
   - questionnaire data
   - mice
 subtitle: ''
-summary: 'This post demonstrates how to perform passive multiple imputation in a fictive simulated dataset that contains five multi-item questionnaires each containing 10 items.'
+summary: 'This post demonstrates how to perform passive multiple imputation to deal with missing items in a multi-item questionnaire.'
 authors: []
 lastmod: '2022-03-02T16:05:53+01:00'
 featured: no
@@ -30,209 +30,222 @@ blogdown::html_page:
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 library(mice)
-library(mitools)
+library(dplyr)
 library(dmo)
 ```
 
-
-This document demonstrates how to perform passive multiple imputation in a fictive simulated dataset that contains five multi-item questionnaires each containing 10 items. In this document the following packages are used: `mice`, `mitools` and `dmo`. 
-
-
-```{r} 
+```{r message=FALSE, warning=FALSE}
 library(mice)
-library(mitools)
 library(dmo)
+
+```
+
+## Missing data in multi-item questionnaires
+
+Multi-item questionnaires are instruments that measure a construct indirectly through items. Item scores can be  continuous, dichotomous or measured on Likert scale. Usually, the summary score of items is the construct that is used in a substantive analysis. 
+
+Missing data in multi-item questionnaires can occur as item score missing data or as missing the full questionnaire. Both situations lead to the same problem: missing total score. Below you see three different missing data patterns for a questionnaire with 5 items. 
+
+```{R echo=FALSE}
+data.frame(item1 = c(1,NA,NA), item2 = c(0,1,NA), item3 = c(0, 0, NA), item4 = c(0,NA, NA), item5 = c(1, 1, NA), "Total score"=c(2, NA, NA) )
+
 ```
 
 
-## Generate simulated data
+## Multiple imputation in multi-item questionnaires
 
-Data are generated for 100 subjects. Each subjects has observations for 5 questionnaires and 3 covariates.
+Missing values in multi-item questionnaire can either be handled by imputing item scores or by imputing total scores directly. On the one hand, item scores can hold valuable information. However, the total scores are often used in analyses, and an imputation model should be compatible with the analysis model. 
 
-```{r }
+The advised strategy for imputation is that when the majority of item scores are observed, to use item level imputation. But when only few item scores observed or none, to use total score imputation. And ideally, you would want to combine both strategies. 
+
+## Challenges in multi-item questionnaire missings
+
+There are two major challenges when dealing with missing item scores in multi-item questionnaires. 
+
+1. The imputation model can grow large when all items are used, especially when more than one questionnaire is administered or when questionnaires are repeatedly measured in a longitudinal study. 
+2. When the total score is used in analyses, the total score should be used as predictor in the imputation of other variables (i.e. imputation model should be compatible with the analysis model).
+
+Solutions:
+
+
+*Imputation model can grow large when all items are used*
+
+* Isolate item imputation per questionnaire or subscale via `predictionMatrix`
+
+
+*When the total score is used in analyses, the total score should be used as predictor for other variables*
+
+* Update total score after each iteration by using **passive imputation**.
+* Use total score as predictor for other covariates via `predictorMatrix`.
+
+
+## Illustrative example
+
+Lets first generate some example data for this illustration. We can use a especially developed function from the `dmo` package to do this. The example data has data for two questionnaires, with each 5 items, and with 1 additional covariate. 
+
+
+```{r}
+
 #generate questionnaire data
-k <- c(10,10,10,10,10)
-nq <- 5
-x <- dmo::gen_qdata(n=100, nq=nq, k= k)
+k <- c(5,5)
+x <- dmo::gen_qdata(n=20, k= k, likert = T)
 
 #generate covariate data
-cov <- MASS::mvrnorm(n=100, mu=c(5,5,5), Sigma=matrix(c(10,1,1,1,10,1,1,1,10),3,3))
+set.seed(61085)
+cov <- MASS::mvrnorm(n=20, mu=c(5,5,5), Sigma=matrix(c(10,1,1,1,10,1,1,1,10),3,3))
 colnames(cov) <- c("cov1", "cov2", "cov3")
 
 #combine in data.frame
-x <- data.frame(x,cov)
+x1 <- data.frame(cbind(x,cov))
 
-```
-
-### Generate missing values
-
-Missing values are generated with the MAR mechanism for 25% of the subjects with a random pattern. Missings are only generated in the item scores (not in the covariates).
-
-```{r}
 alpha <- 0.25
 
 #regerate 2 random patterns for missing item data
 pattern <- matrix(c(sample(c(0,1), size=2*sum(k),replace = TRUE)),nrow=2)
-pattern <- cbind(pattern, matrix(c(1,1,1,1,1,1),nrow=2))
-pattern
-```
+pattern <- cbind(pattern, matrix(c(1,1,1,1,1,1),nrow=2, byrow = T))
 
-```{R}
 #apply each pattern with equal frequency and equal odds
 f <- c(0.5,0.5)
 g <- c(4,4)
 
 #generate missings in the data
-x <- MAR(x,alpha,pattern,f,g)
-colnames(x) <- c(paste0("I",1:sum(k)),c("cov1", "cov2", "cov3") )
+set.seed(9817)
+x <- dmo::MAR(x1,alpha = alpha ,pattern = pattern, f = f ,g = g)
+colnames(x) <- gsub("_", "",colnames(x1))
 
-head(x, 10)
+#head(x, 15)
+ts <- dmo::calculate_ts(x, k= c(5,5))
+dat <- data.frame(x,ts) %>% select(Q1i1:Q2i5, TSQ1, TSQ2, cov1) %>% mutate(cov1 = round(cov1, 2))
+dat
 ```
 
+### Challenge 1: Isolate item imputation per questionnaire or subscale.
 
-### Calculate total scores for questionnaires
+Use predictor matrix: rows indicate imputed variable, columns are predictors. For each questionnaire, only its own items are used as predictors to impute the item scores.
 
-Calculate the total scores (sum scores) for each questionnaire, only when all items are observed.
-```{r}
-ts <- dmo::calculate_ts(x, nq=5,k= c(10,10,10,10,10))
-data <- data.frame(x,ts)
-```
-
-
-## Passive multiple imputation
-
-In passive multiple imputation, the item scores are imputed and then during the imputation, the total score is calculated based on the imputed item scores. These total scores can then be used as predictors for imputations of other variables.
-
-There are 2 imputation models that are used in this procedure. 
-
-1. The total score of the questionnaires are imputed directly. This model only uses the total scores of the questionnaires an the three covariates. These imputed total scores are used for the subjects that have too many item scores missing, i.e. > 75%.
-2. The item scores of the questionnaires are imputed, and the total scores are passively imputed, by re-calculating these after each imputation iteration. The re-calculated total scores are used as predictors to impute items from other questionnaires. 
-
-### Initialize imputation model for total score imputation
-
-For this model, we can use the default settings used in `mice`.
+* Isolate items for Questionnaire 1:
 
 ```{r}
-tsdata <- data.frame(ts, cov)
-ini <- mice(tsdata, max=0, print=FALSE)
-ini$meth
-ini$predictorMatrix
-
-
+predQ <- make.predictorMatrix(dat)
+predQ[1:5,6:10] <- 0
+predQ[1:5,]
 ```
 
 
-### Set up imputation model for passive imputation
-
-For the passive imputation model, we need to adapt the methods for the total scores, and the predictor matrix for the items. 
-
-#### Methods
-
-First the imputation method is adapted for the questionnaire total scores.
+* Isolate items for Questionnaire 2:
 
 ```{r}
-ini <- mice(data, max=0, print=FALSE)
-meth <- ini$meth
-
-#for each questionnaire adapt imputation method (meth): make function to calculate TS between iterations. Example TS1:
-#meth["TS1"] <- "~I(I1+I2+I3+I4+I5+I6+I7+I8+I9+I10)" - loop below automates for simulation data
-nq <- 5
-k <- c(10,10,10,10,10)
-for(q in seq_along(1:nq)){
-  meth[paste0("TS",q)] <- paste0("~I(", paste(paste0("I",1:k[q]), collapse="+"), ")")
-}
-meth[c("TS1", "TS2", "TS3", "TS4", "TS5")]
+predQ[6:10,1:5] <- 0
+predQ[6:10,]
 ```
 
-#### Predictor matrix
 
-The the predictor matrix is adapted such that items are imputed by items from their own questionnaire and other total scores.
-In predictor matrix: target variable is in row and the predictor variables are in the column. Below the predictor matrix for imputing the first 10 items is shown. 
+* Total score cannot be used as predictor for its own items.
 
 
 ```{r}
-pred <- ini$predictorMatrix
-pred[paste0("I", 1:10),] <- 0
-pred[paste0("I", 1:10),paste0("I", 1:10)] <- 1
-pred[paste0("I", 1:10),c("TS2","TS3","TS4","TS5")] <- 1
-pred[paste0("I", 11:20),] <- 0
-pred[paste0("I", 11:20),paste0("I", 11:20)] <- 1
-pred[paste0("I", 11:20),c("TS1","TS3","TS4","TS5")] <- 1
-pred[paste0("I", 21:30),] <- 0
-pred[paste0("I", 21:30),paste0("I", 21:30)] <- 1
-pred[paste0("I", 21:30),c("TS1","TS2","TS4","TS5")] <- 1
-pred[paste0("I", 31:40),] <- 0
-pred[paste0("I", 31:40),paste0("I", 31:40)] <- 1
-pred[paste0("I", 31:40),c("TS1","TS2","TS3","TS5")] <- 1
-pred[paste0("I", 41:50),] <- 0
-pred[paste0("I", 41:50),paste0("I", 41:50)] <- 1
-pred[paste0("I", 41:50),c("TS1","TS2","TS3","TS4")] <- 1
-pred[,colnames(cov)] <- 1 #covariates as predictors for all items
-pred <- pred*ini$predictorMatrix
-head(pred, 10)
+predQ[1:5,11] <- 0
+predQ[6:10,12] <- 0
+
+predQ[1:10,]
+
 ```
 
 
-
-## Apply final imputations
-
-For both imputation procedures we use 15 imputations and 10 iterations. The object `imp1` contains the imputations for the total scores only from other total scores and the thee covariates. The object `imp2` for items and total scores with passive imputation.
+* Item scores cannot be used as predictor together with its own total scores.
 
 ```{r}
-imp1 <- mice(tsdata, 15,maxit=10,seed=61085,print=FALSE)
-imp2 <- mice(data, m=15, meth=meth,pred=pred, maxit=10, seed=12354, print=FALSE)
+predQ[11:13,1:10] <- 0
+predQ[11:13,]
 ```
 
-### Check iteration plots
 
-The the imputations for the Total scores in the total score imputation (`imp1`) passive imputation procedure (`imp2`).
+* Total score should be used as predictor for other variables when used in the analysis model.
 
 ```{r}
-plot(imp1, paste0("TS",1:5))
-plot(imp2, paste0("TS",1:5))
+predQ[11:13,11:13]
 ```
 
-## Combine imputations
 
-Combine imputations and select (per questionnaire) the ts from imp1 for persons with <75% of items missing; and the ts from imp2 for persons with >75% of items missing (in a questionnaire).
-
-First make indicators for each q if missing <75%:
-```{r}
-calculate_i <- function(x,nq,k){
-  ind <- matrix(0,nrow=nrow(x), ncol=(nq))
-
-  for (q in 1:(nq)){
-    ind[,q] <- apply(x[,(((q*k[q])-k[q])+1):(q*k[q])],1,function(x) {sum(is.na(x))/length(x)})
-  }
-  colnames(ind) <- paste("TS",1:nq,sep="")
-  ind <- ifelse(ind <0.75,1,0)
-  ind
-}
-indicator <- calculate_i(x=data, nq=5, k=c(10,10,10,10,10))
-```
-
-Then select correct TS from each imputation.
-```{r}
-implist <- lapply(1:15, function(x){
-  x1 <- complete(imp1, x)
-  x2 <- complete(imp2, x)
-  tsimp <- lapply(1:nq, function(x){
-    ifelse(indicator[,x]==1, x2[,paste0("TS",x)], x1[,paste0("TS",x)] )
-  })
-  tsimp <- data.frame(tsimp)
-  colnames(tsimp) <- paste0("impTS",1:nq)
-  data.frame(x1,tsimp)
-})
-```
-
-## Analyze and pool
-
-Save data in an imputation list for analysis and test relation between TS1 and TS3
+* **Full predictor matrix:**
 
 ```{r}
-impdata <- imputationList(implist)
-fit <- with (impdata, lm(impTS1~impTS3 )) 
-summary(pool (fit))
+predQ
 
 ```
 
+
+
+### Challenge 2: Passive imputation of the total score
+
+The total score is used as predictor, but not directly imputed. The item scores are imputed and the total scores re-calculated from the imputed item scores: ***passive imputation***. 
+
+First, lets explain the passive imputation process. Each item is imputed as specified in the imputation model. For our example this means that the item scores for Q1 are imputed by using the remaining items of Q1, and the total score of Q2 and the covariate. So during each iteration for Q1:
+
+
+1\. Impute item scores using items from its own questionnaire, total score(s) from other questionnaires and covariate(s).
+
+  * $Q1i1_i = Q1i2_i \dot\beta_1 + Q1i3_i \dot\beta_2 + Q1i4_i \dot\beta_3 + Q1i5_i \dot\beta_4 + TSQ2_i \dot\beta_5 + cov1_i \dot\beta_6$
+  * $Q1i2_i = Q1i1_i \dot\beta_1 + Q1i3_i \dot\beta_2 + Q1i4_i \dot\beta_3 + Q1i5_i \dot\beta_4 + TSQ2_i \dot\beta_5 + cov1_i \dot\beta_6$
+  * $etc.$
+
+2\. Total score is re-calculated using the imputed item scores.
+
+  * $TSQ1_i = Q1i1_i + Q1i2_i + Q1i3_i + Q1i4_i + Q1i5_i$
+
+3\. Updated total score is used as predictor for covariate(s) and items of other questionnaires in next iteration.
+
+  * $Q2i1_i =  Q2i2_i \dot\beta_1 + Q2i3_i \dot\beta_2+ Q2i4_i \dot\beta_3+ Q2i5_i \dot\beta_4+ TSQ1_i \dot\beta_5 + cov1_i \dot\beta_6$
+</div>
+
+*Note the $_i$ indicates imputed value from the previous iteration.*
+
+<br>
+
+* To update the total scores after each iteration, with the imputed item scores, we change the imputation method for the total scores.
+
+```{r}
+imp0 <- mice(dat, pred = predQ, m =1, maxit =0)
+methodQ <- imp0$method
+methodQ[c("TSQ1", "TSQ2")]
+```
+
+* The total score is calculated as the sum of the items.
+
+```{r}
+methodQ["TSQ1"] <- "~I(Q1i1 + Q1i2 + Q1i3 + Q1i4 + Q1i5)"
+methodQ["TSQ2"] <- "~I(Q2i1 + Q2i2 + Q2i3 + Q2i4 + Q2i5)"
+methodQ[c("TSQ1", "TSQ2")]
+
+```
+
+
+
+### Multiple imputation
+
+Using the predictor matrix and the updated method, we can impute the data. The predictor matrix makes sure that the model does not get to large for each imputed item or variable. The methods are set such that the total scores are imputed with *passive imputation*. 
+
+```{r}
+imp <- mice(dat, m=5, meth=methodQ,pred=predQ, maxit=10, seed=12354, print=FALSE)
+```
+
+
+* The convergence of the imputations can be checked by plotting the iterations per imputed dataset. 
+
+```{R}
+plot(imp, c("TSQ1", "TSQ2"))
+```
+
+* The imputed values for both total scores can be evaluated in a plot with the imputed values per imputation.
+
+```{R}
+stripplot(imp, TSQ1 + TSQ2 ~ .imp)
+```
+
+
+### Summary
+
+* Item level information may need a different strategy in order to use all available information
+* When there are missing values at item level only, use a strategy that involves the item scores.
+* When mostly the full questionnaire is missing, the missing data can be dealt with at the total score level.
+* Ideally, the item scores are imputed, while using the updated total scores as predictor for other variables in the data, i.e. *passive imputation*.
