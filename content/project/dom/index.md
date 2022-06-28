@@ -8,7 +8,7 @@ tags:
 date: ""
 
 # Optional external URL for project (replaces project detail page).
-external_link: ""
+external_link: "www.missingdata.nl"
 
 image:
   caption: ""
