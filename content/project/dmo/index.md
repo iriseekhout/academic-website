@@ -8,7 +8,7 @@ tags:
 date: "2015-01-06"
 
 # Optional external URL for project (replaces project detail page).
-external_link: "www.missingdata.nl"
+external_link: ""
 
 image:
   caption: ""
@@ -31,7 +31,8 @@ url_video: ""
 #   Otherwise, set `slides = ""`.
 slides: ""
 ---
-Incomplete data can contain valuable information
+
+### Incomplete data can contain valuable information
 
 In epidemiological research, patient reported outcomes are often measured by a multi-item questionnaire. In a multi-item questionnaire a construct is measured by combining the scores on several items (i.e., questions). Often these questionnaires contain missing data because one or several items are not filled out by the respondent, or the entire questionnaire was not filled out. Missing item scores might require different missing data methods than missing total scores. 
 
