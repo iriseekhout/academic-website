@@ -1,0 +1,11 @@
+---
+title: "Correction: Effectiveness of a Web-Based Tailored Intervention With Virtual Assistants Promoting the Acceptability of HPV Vaccination Among Mothers of Invited Girls: Randomized Controlled Trial"
+date: 2020-01-01
+publishDate: 2023-01-10T13:35:50.536018Z
+authors: ["Mirjam Pot", "Theo GWM Paulussen", "Robert AC Ruiter", "Iris Eekhout", "Hester E de Melker", "Maxine EA Spoelstra", "Hilde M van Keulen", " others"]
+publication_types: ["2"]
+abstract: ""
+featured: false
+publication: "*Journal of Medical Internet Research*"
+---
+
