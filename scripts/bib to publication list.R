@@ -11,3 +11,4 @@
  cd C:\Users\eekhouti\OneDrive - TNO\Documents\GitHub\academic-website
 
 #then run the import commands
+ academic import --bibtex googlescholarexport.bib --overwrite

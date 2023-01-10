@@ -1,7 +1,7 @@
 ---
 title: "Sample size recommendations for studies on reliability and measurement error: an online application based on simulation studies"
 date: 2022-01-01
-publishDate: 2023-01-10T13:35:50.575958Z
+publishDate: 2023-01-10T15:27:57.426496Z
 authors: ["Lidwine B Mokkink", "Henrica de Vet", "Susanne Diemeer", "Iris Eekhout"]
 publication_types: ["2"]
 abstract: ""

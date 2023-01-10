@@ -1,7 +1,7 @@
 ---
 title: "Management of psychosocial risks in european workplaces; drivers and barriers in a national and cultural context: abstract and presentation"
 date: 2018-01-01
-publishDate: 2023-01-10T13:35:50.529082Z
+publishDate: 2023-01-10T15:27:57.367990Z
 authors: ["SG van den Heuvel", "Bakhuys Roozeboom", "I Eekhout", "ILD Houtman"]
 publication_types: ["1"]
 abstract: ""
