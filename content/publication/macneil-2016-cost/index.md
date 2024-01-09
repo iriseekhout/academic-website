@@ -1,11 +1,21 @@
 ---
-title: "The cost-effectiveness of two forms of case management compared to a control group for persons with dementia and their informal caregivers from a societal perspective"
-date: 2016-01-01
-publishDate: 2023-01-10T15:27:57.297375Z
-authors: ["Janet MacNeil Vroomen", "Judith E Bosmans", "Iris Eekhout", "Karlijn J Joling", "Lisa D van Mierlo", "Franka JM Meiland", "Hein PJ van Hout", "Sophia E de Rooij"]
-publication_types: ["2"]
 abstract: ""
+authors:
+- Janet MacNeil Vroomen
+- Judith E Bosmans
+- Iris Eekhout
+- Karlijn J Joling
+- Lisa D van Mierlo
+- Franka JM Meiland
+- Hein PJ van Hout
+- Sophia E de Rooij
+date: "2016-01-01"
 featured: false
-publication: "*PloS one*"
+publication: '*PloS one*'
+publication_types:
+- "2"
+publishDate: "2023-01-10T15:27:57.297375Z"
+title: The cost-effectiveness of two forms of case management compared to a control
+  group for persons with dementia and their informal caregivers from a societal perspective
 ---
 
