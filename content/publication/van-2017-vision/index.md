@@ -1,11 +1,6 @@
 ---
 title: 'Vision screening in primary youth health care (PYHC): can it be improved by
   using an anutorefractive device?'
-
-# Authors
-# A YAML list of author names
-# If you created a profile for a user (e.g. the default `admin` user at `content/authors/admin/`), 
-# write the username (folder name) here, and it will be replaced with their full name and linked to their profile.
 authors:
 - CPB van der Ploeg
 - E Vlasblom
@@ -15,67 +10,11 @@ authors:
 - ME van den Akker-van Marle
 - CI Lanting
 - PH Verkerk
-
-# Author notes (such as 'Equal Contribution')
-# A YAML list of notes for each author in the above `authors` list
-author_notes: []
-
 date: '2017-01-01'
-
-# Date to publish webpage (NOT necessarily Bibtex publication's date).
-publishDate: '2024-05-24T13:15:45.166288Z'
-
-# Publication type.
-# A single CSL publication type but formatted as a YAML list (for Hugo requirements).
+publishDate: '2024-05-24T13:30:33.074443Z'
 publication_types:
-- paper-conference
-
-# Publication name and optional abbreviated publication name.
+- "2"
 publication: '*Mind the gap! Building bridges to better health for all young people,
   EUSUHM (European Union for School and University Health and Medicine) congres 2017,
   Leuven, 134*'
-publication_short: ''
-
-doi: ''
-
-abstract: ''
-
-# Summary. An optional shortened abstract.
-summary: ''
-
-tags: []
-
-# Display this page in a list of Featured pages?
-featured: false
-
-# Links
-url_pdf: ''
-url_code: ''
-url_dataset: ''
-url_poster: ''
-url_project: ''
-url_slides: ''
-url_source: ''
-url_video: ''
-
-# Custom links (uncomment lines below)
-# links:
-# - name: Custom Link
-#   url: http://example.org
-
-# Publication image
-# Add an image named `featured.jpg/png` to your page's folder then add a caption below.
-image:
-  caption: ''
-  focal_point: ''
-  preview_only: false
-
-# Associated Projects (optional).
-#   Associate this publication with one or more of your projects.
-#   Simply enter your project's folder or file name without extension.
-#   E.g. `projects: ['internal-project']` links to `content/project/internal-project/index.md`.
-#   Otherwise, set `projects: []`.
-projects: []
 ---
-
-Add the **full text** or **supplementary notes** for the publication here using Markdown formatting.
