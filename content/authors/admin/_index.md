@@ -26,7 +26,7 @@ interests:
 organizations:
 - name: TNO
   url: https://www.tno.nl/
-role: Statistician
+role: Statistician & Senior Scientist
 social:
 - icon: envelope
   icon_pack: fas

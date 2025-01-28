@@ -1,22 +1,25 @@
 +++
-title = "Management of psychosocial risks in european workplaces; drivers and barriers in a national and cultural context: abstract and presentation"
+title = "Management of psychosocial risks in European workplaces: evidence from the second European survey of enterprises on new emerging risks (ESENER-2)"
 date = "2018-01-01"
-authors = ["SG {van den Heuvel}", "Bakhuys Roozeboom", "I Eekhout", "ILD Houtman"]
+authors = ["S {van den Heuvel}", "MMC {Bakhuys Roozeboom}", "I Eekhout", "A Venema"]
 publication_types = ["2"]
-publication = "Proceedings of the 13th European Academy of Occupational Health Psychology ((EAOHP), Adapting to rapid changes in today’s workplace 5-7 September 2018 in Lisbon, Portugal TNO"
-publication_short = "Proceedings of the 13th European Academy of Occupational Health Psychology ((EAOHP), Adapting to rapid changes in today’s workplace 5-7 September 2018 in Lisbon, Portugal TNO"
+publication = "NA"
+publication_short = "NA"
+abstract = ""
 abstract_short = ""
-url_code = ""
 image_preview = ""
 selected = false
 projects = []
+tags = []
 url_pdf = ""
 url_preprint = ""
+url_code = ""
 url_dataset = ""
 url_project = ""
 url_slides = ""
 url_video = ""
 url_poster = ""
+url_source = ""
 math = true
 highlight = true
 [header]
