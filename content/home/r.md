@@ -3,7 +3,7 @@ title: R Packages & shiny
 
 ---
 
-The projects highlighted on the website have R packages attached. The D-score project has multiple R packages available and several shiny application that demonstrate functionailies. The agreement project evolves around one R package and one shiny application. 
+The projects highlighted on the website have R packages attached. The D-score project has multiple R packages available and several shiny application that demonstrate functionalities. The agreement project evolves around one R package and one shiny application. 
 
 *Reliability and Agreement*
 
@@ -13,7 +13,7 @@ The projects highlighted on the website have R packages attached. The D-score pr
 
 *Child development with the D-score*
 -   [dscore](https://d-score.org/dscore/)
--   [dtest]()
+-   [dcalculator](https://tnochildhealthstatistics.shinyapps.io/dcalculator/): A shiny application to calculate the D-score with your data
 
 
 

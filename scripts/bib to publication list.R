@@ -3,7 +3,7 @@
 #in python prompt:
 
 
-  import subprocess
+import subprocess
 import sys
 
 def install(package):
@@ -26,6 +26,9 @@ install("academic")
  ## This code finally worked when the academic python package was installed..
  # https://github.com/GetRD/academic-file-converter
  C:\Users\eekhouti\AppData\Roaming\Python\Python312\Scripts\academic import --bibtex googlescholarexport.bib content/publication/ --overwrite
+
+
+ ##NOTE that publication type needs to be a number (not string) so "2" for journal article.
 
 
 
