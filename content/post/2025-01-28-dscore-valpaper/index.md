@@ -16,7 +16,7 @@ authors: ["Iris Eekhout & Stef van Buuren"]
 lastmod: '2025-01-28T07:44:16+01:00'
 featured: no
 image:
-  caption: ''
+  caption: 'Created by ChatGPT with AI-generated imagery assistance via DALL·E, January 2025'
   focal_point: ''
   preview_only: no
 projects: ["d-score"]
